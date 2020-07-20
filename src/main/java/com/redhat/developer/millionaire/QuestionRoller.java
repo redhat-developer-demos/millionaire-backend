@@ -2,8 +2,6 @@ package com.redhat.developer.millionaire;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.TriggerKey.triggerKey;
-import static org.quartz.impl.matchers.KeyMatcher.keyEquals;
 
 import java.util.Date;
 
@@ -21,11 +19,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
-import org.quartz.Trigger.CompletedExecutionInstruction;
-import org.quartz.listeners.TriggerListenerSupport;
 
 import io.quarkus.arc.Arc;
 import io.vertx.core.Vertx;
@@ -47,45 +41,53 @@ public class QuestionRoller {
     GamerManager gamerManager;
 
     @Inject
+    ContestState state;
+
+    @Inject
     Vertx vertx;
 
-    public void start() {
-        final JobDetail job = newJob(SendEndOfTimeQuestion.class)
-                                .withIdentity("questions", "millionaire")
-                                .build();
+    public ServerSideEventMessage sendNextQuestion() {
+        Question nextQuestion = this.questionsManager.nextQuestion();
 
-        final SimpleTrigger trigger = newTrigger()
-                                        .withIdentity("questionsTrigger", "millionaire")
-                                        .startNow()
-                                        .withSchedule(
-                                            SimpleScheduleBuilder.simpleSchedule()
-                                                .withIntervalInSeconds(questionsManager.getTimeBetweenQuestionsInSeconds())
-                                                .withRepeatCount(questionsManager.getNumberOfQuestions() - 1))
-                                        .build();
+        final ShowQuestionDTO message = ShowQuestionDTO.of(nextQuestion);
+        this.send(new ServerSideEventDTO("question", message));
+        start();
+
+        return message;
+    }
+
+    public QuestionAnswerDTO sendRevealAnswers() {
+        final Question question = state.getCurrentQuestion().get();
+        final QuestionAnswerDTO questionAnswer = QuestionAnswerDTO.of(question);
+        this.send(new ServerSideEventDTO("reveal", questionAnswer));
+        return questionAnswer;
+    }
+
+    public ScoreDTO sendEndContest() {
         try {
-            quartz.getListenerManager()
-                    .addTriggerListener(new EndTriggerListener("EndTrigger"),
-                                                keyEquals(triggerKey("questionsTrigger", "millionaire")));
-            quartz.scheduleJob(job, trigger);
-        } catch (SchedulerException e) {
+            ScoreDTO finalScoreDTO = new ScoreDTO(gamerManager.getUsernameScore());
+            this.send(new ServerSideEventDTO("end", finalScoreDTO));
+            return finalScoreDTO;
+        } catch(Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
-    void sendEndOfTimeQuestion() {
-        final ShowQuestionDTO message = ShowQuestionDTO.of(this.questionsManager.nextQuestion());
-        this.send(new ServerSideEventDTO("question", message));
-    }
+    private void start() {
+        final JobDetail job = newJob(SendEndOfTimeQuestion.class)
+                                .withIdentity("questions", "millionaire")
+                                .build();
 
-    void sendEndContest() {
-        System.out.println("before");
-        try {
-            ScoreDTO finalScoreDTO = new ScoreDTO(gamerManager.getUsernameScore());
-            System.out.println(finalScoreDTO);
-            send(new ServerSideEventDTO("end", finalScoreDTO));
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        final Date triggerDate = new Date(System.currentTimeMillis() + (questionsManager.getTimeBetweenQuestionsInSeconds() * 1000));
+        final Trigger trigger = newTrigger()
+                                        .withIdentity("questionsTrigger", "millionaire")
+                                        .startAt(triggerDate)
+                                        .build();
+            try {
+                quartz.scheduleJob(job, trigger);
+            } catch (SchedulerException e) {
+                throw new IllegalStateException(e);
+            }
     }
 
     void send(ServerSideEventDTO serverSideEventDTO) {
@@ -103,55 +105,9 @@ public class QuestionRoller {
         }
     }
 
-    public class EndTriggerListener extends TriggerListenerSupport {
-
-        private String name;
-
-        public EndTriggerListener(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-        
-        @Override
-        public void triggerComplete(
-            Trigger trigger,
-            JobExecutionContext context,
-            CompletedExecutionInstruction triggerInstructionCode) {
-                
-                if (triggerInstructionCode == CompletedExecutionInstruction.DELETE_TRIGGER) {
-                    final JobDetail job2 = newJob(SendEndContest.class)
-                                .withIdentity("end", "millionaire")
-                                .build();
-                    
-                    Date triggerTime = new Date(System.currentTimeMillis() + (questionsManager.getTimeBetweenQuestionsInSeconds() * 1000));
-
-                    final Trigger trigger2 = newTrigger()
-                                .withIdentity("endTrigger", "millionaire")
-                                .startAt(triggerTime)
-                                .build();
-
-                    try {
-                        quartz.scheduleJob(job2, trigger2);
-                    } catch (SchedulerException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }
-        }
-
-    }
-
-    public static class SendEndContest implements Job {
-
-        @Override
-        public void execute(JobExecutionContext context) throws JobExecutionException {
-            System.out.println("End Trigger");
-            Arc.container().instance(QuestionRoller.class).get().sendEndContest();  
-        }
-
+    void sendEndOfTimeQuestion() {
+        System.out.println("Disable");
+        this.send(new ServerSideEventDTO("disable", new ServerSideEventMessage(){}));
     }
 
     public static class SendEndOfTimeQuestion implements Job {

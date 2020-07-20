@@ -24,6 +24,11 @@
                     <button type="button" class="btn btn-light" id="a3" data-answer-id="0">Light</button>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body" id="countdown">
+                    <div class="values"></div>
+                </div>
+            </div>
         </div>
         <div class="row">
             <h2>Final Score Board</h2>
@@ -36,6 +41,7 @@
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="lib/easytimer.min.js"></script>
 
 <script>
 
@@ -45,6 +51,20 @@
 
     function disableButtons() {
         changeButtonMode(true)
+    }
+
+    function startCounter() {
+        var timer = new easytimer.Timer()
+        timer.start({countdown: true, startValues: {seconds: 20}});
+        $('#countdown .values').html(timer.getTimeValues().toString());
+
+        timer.addEventListener('secondsUpdated', function (e) {
+            $('#countdown .values').html(timer.getTimeValues().toString());
+        });
+
+        timer.addEventListener('targetAchieved', function (e) {
+            $('#countdown .values').html('Time Off');
+        });
     }
 
     function changeButtonMode(disabled) {
@@ -64,6 +84,7 @@
 
         // If used with jquery approach the content is not refreshed correctly when read the dataset
         var aId = document.getElementById(buttonId).dataset.answerId
+        sessionStorage.setItem("pushedButton", buttonId)
 
         $.post({
             url: "/admin/question/answer/" + contestId + "/" + questionId + "/" + aId,
@@ -71,26 +92,130 @@
                 "userId": userId
             },
             success: function(data, status) {
-                $("#" + buttonId).removeClass("btn-light")
-                $("#" + buttonId).addClass("btn-success")
+                sessionStorage.setItem("correct", "true")
             },
             error: function(data, status) {
-                $("#" + buttonId).removeClass("btn-light")
-                $("#" + buttonId).addClass("btn-danger")
+                sessionStorage.setItem("correct", "false")
             }
         });
     }
 
-    $(document).ready(function(){
-        $.ajax({
-            dataType: 'json',
-            url: "/admin/register", 
-            success: function(data, status) {
-                $("#welcome").html("Welcome " + data.user);
-                sessionStorage.setItem("userId", data.userId)
-                sessionStorage.setItem("contestId", data.contestId)
+    function resetColors(buttonId) {
+        $("#" + buttonId).removeClass("btn-light")
+        $("#" + buttonId).removeClass("btn-danger")
+        $("#" + buttonId).removeClass("btn-success")
+    }
+
+    function resetAnswerInformation() {
+        sessionStorage.removeItem("pushedButton")
+        sessionStorage.removeItem("correct")
+    }
+
+    function correctAnswer(buttonId) {
+        resetColors(buttonId)
+        $("#" + buttonId).addClass("btn-success")
+    }
+
+    function incorrectAnswer(buttonId) {
+        resetColors(buttonId)
+        $("#" + buttonId).addClass("btn-danger")
+    }
+
+    function showUserResult() {
+        var buttonId = sessionStorage.getItem("pushedButton")
+        if (buttonId != null) {   
+            var isCorrect = sessionStorage.getItem("correct")
+            if (isCorrect == "true") {
+                correctAnswer(buttonId)
+            } else {
+                incorrectAnswer(buttonId)
             }
-        });
+        }
+
+    }
+
+    function showScore(message) {
+        var listOfScores = message.scores
+
+        for(var i = 0; i < listOfScores.length; i++) {
+            var info = listOfScores[i];
+            $("#score").find('tbody')
+                .append($('<tr>')
+                    .append($('<th>')
+                            .attr("scope", "row")
+                            .text(i+1)
+                    )
+                    .append($('<td>')
+                            .text(info.username)
+                    )
+                    .append($('<td>')
+                            .text(info.score)
+                    )
+                )
+        }
+    }
+
+    function revealResult(message) {
+        var correctIndex = message.correctAnswerIndex
+        correctAnswer("a" + correctIndex)
+
+        var incorrectIndexes = message.incorrectAnswersIndex
+
+        for(var i = 0; i < incorrectIndexes.length; i++) {
+            var info = incorrectIndexes[i];
+            incorrectAnswer("a" + info)
+        }
+        
+    }
+
+    function showAnswers(message) {
+        resetAnswerInformation()
+        var question = document.getElementById("question")
+        question.innerHTML = message.questionTitle
+        question.dataset.questionId=message.questionId
+
+        var answers = message.answers;
+                
+        var a0 = document.getElementById("a0")
+        a0.innerHTML = answers[0].prefix + ') ' + answers[0].answerDescription
+        a0.dataset.answerId=answers[0].answerId
+        a0.className="btn btn-light"
+                
+        var a1 = document.getElementById("a1")
+        a1.innerHTML = answers[1].prefix + ') ' + answers[1].answerDescription
+        a1.dataset.answerId=answers[1].answerId
+        a1.className="btn btn-light"
+
+        var a2 = document.getElementById("a2")
+        a2.innerHTML = answers[2].prefix + ') ' + answers[2].answerDescription
+        a2.dataset.answerId=answers[2].answerId
+        a2.className="btn btn-light"
+
+        var a3 = document.getElementById("a3")
+        a3.innerHTML = answers[3].prefix + ') ' + answers[3].answerDescription
+        a3.dataset.answerId=answers[3].answerId
+        a3.className="btn btn-light"
+    }
+
+    $(document).ready(function() {
+
+        if (sessionStorage.getItem(username) == null) {
+            $.ajax({
+                dataType: 'json',
+                url: "/admin/register", 
+                success: function(data, status) {
+                    $("#welcome").html("Welcome " + data.user)
+                    sessionStorage.setItem("username", data.user)
+                    sessionStorage.setItem("userId", data.userId)
+                    sessionStorage.setItem("contestId", data.contestId)
+                }
+            });
+        } else {
+            // it is a reload of the page
+            sessionStorage.setItem("username", sessionStorage.getItem(username))
+        }
+
+        disableButtons()
 
         $("#a0").click(function() {
             clickAnswer("a0")
@@ -118,56 +243,31 @@
         var incomingData = event.data
         var sseContent = JSON.parse(incomingData)
 
-        if (sseContent.type == "end") {
+        switch (sseContent.type) {
             
-            var listOfScores = sseContent.content.scores
-
-            for(var i = 0; i < listOfScores.length; i++) {
-                var info = listOfScores[i];
-                $("#score").find('tbody')
-                    .append($('<tr>')
-                        .append($('<th>')
-                                .attr("scope", "row")
-                                .text(i+1)
-                        )
-                        .append($('<td>')
-                                .text(info.username)
-                        )
-                        .append($('<td>')
-                                .text(info.score)
-                        )
-                    )
+            case "end": {
+                showScore(sseContent.content)
+                break;
             }
 
-        } else {
+            case "disable": {
+                disableButtons();
+                showUserResult();
+                break;
+            }
 
-            enableButtons()
-            var message = sseContent.content
-            var question = document.getElementById("question")
-            question.innerHTML = message.questionTitle
-            question.dataset.questionId=message.questionId
+            case "reveal": {
+                revealResult(sseContent.content);
+                break;
+            }
 
-            var answers = message.answers;
-            
-            var a0 = document.getElementById("a0")
-            a0.innerHTML = answers[0].prefix + ') ' + answers[0].answerDescription
-            a0.dataset.answerId=answers[0].answerId
-            a0.className="btn btn-light"
-            
-            var a1 = document.getElementById("a1")
-            a1.innerHTML = answers[1].prefix + ') ' + answers[1].answerDescription
-            a1.dataset.answerId=answers[1].answerId
-            a1.className="btn btn-light"
+            case "question": {
+                enableButtons()
+                startCounter()
+                showAnswers(sseContent.content)
+                break;
+            }
 
-            var a2 = document.getElementById("a2")
-            a2.innerHTML = answers[2].prefix + ') ' + answers[2].answerDescription
-            a2.dataset.answerId=answers[2].answerId
-            a2.className="btn btn-light"
-
-            var a3 = document.getElementById("a3")
-            a3.innerHTML = answers[3].prefix + ') ' + answers[3].answerDescription
-            a3.dataset.answerId=answers[3].answerId
-            a3.className="btn btn-light"
         }
 
     };

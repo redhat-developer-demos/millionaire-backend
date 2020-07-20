@@ -3,7 +3,6 @@ package com.redhat.developer.millionaire;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,7 +30,7 @@ import io.smallrye.mutiny.Multi;
 
 @Path("/admin")
 @Transactional
-public class AdminEndpoint {
+public class AdminOperations {
 
     @Inject
     IdentifierGenerator identifierGenerator;
@@ -157,13 +156,13 @@ public class AdminEndpoint {
 
     @POST
     @Path("/start/{contestId}")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response startContest(@PathParam("contestId") String contestId) {
         Response response = state.getCurrentContest()
             .filter(c -> c.contestId.equals(contestId))
             .map(c -> {
-                task.start();
-                return Response.ok().build();
+                ServerSideEventMessage nextQuestion = task.sendNextQuestion();
+                return Response.ok().entity(nextQuestion).build();
             })
             .orElseGet(() -> Response.status(Status.NOT_FOUND)
                             .entity("Contest Id" + contestId + "not found.").build());
@@ -180,7 +179,6 @@ public class AdminEndpoint {
         return Response.ok().entity(ShowQuestionDTO.of(state.getCurrentQuestion().get())).build();
     }
 
-    // This will change to SSE or WebSockets 
     @GET
     @Path("/question/{contestId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -189,7 +187,13 @@ public class AdminEndpoint {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        return Response.ok().entity(ShowQuestionDTO.of(questionManager.nextQuestion())).build();
+        if (state.isLastQuestion()) {
+            final ServerSideEventMessage end = task.sendEndContest();
+            return Response.ok().entity(end).build();
+        }
+
+        ServerSideEventMessage nextQuestion = task.sendNextQuestion();
+        return Response.ok().entity(nextQuestion).build();
 
     }
 
@@ -217,6 +221,18 @@ public class AdminEndpoint {
             return Response.status(Status.PRECONDITION_FAILED).build();
         }
 
+    }
+
+    @GET
+    @Path("/question/answer/reveal/{contestId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response reveal(@PathParam("contestId") String contestId) {
+        if (!validCurrentContest(contestId)) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+
+        QuestionAnswerDTO revealAnswers = task.sendRevealAnswers();
+        return Response.ok().entity(revealAnswers).build();
     }
 
     @GET

@@ -9,6 +9,7 @@ public class ContestState {
     
     private Contest currentContest;
     private Question currentQuestion;
+    private int questionNumber = 0;
     private long questionTime;
     
     public void setQuestionTime() {
@@ -31,8 +32,13 @@ public class ContestState {
         this.currentContest = currentContest;
     }
 
+    public boolean isLastQuestion() {
+        return this.questionNumber == currentContest.numberOfQuestions;
+    }
+
     public void setCurrentQuestion(Question currentQuestion) {
         this.currentQuestion = currentQuestion;
+        this.questionNumber++;
     }
 
 }
