@@ -1,0 +1,50 @@
+{
+    "durationBetweenQuestions": "PT20S",
+    "name": "Java Wants To Be Milionaire",
+    "questions": [
+      {
+        "correctAnswer": {
+          "description": "Duke",
+          "prefix": "B"
+        },
+        "incorrectAnswers": [
+          {
+            "description": "Kuke",
+            "prefix": "C"
+          },
+          {
+            "description": "Tuki",
+            "prefix": "A"
+          },
+          {
+            "description": "Puki",
+            "prefix": "D"
+          }
+        ],
+        "order": 0,
+        "title": "What's the name of Java mascot?"
+      },
+      {
+        "correctAnswer": {
+          "description": "class",
+          "prefix": "A"
+        },
+        "incorrectAnswers": [
+          {
+            "description": "struct",
+            "prefix": "C"
+          },
+          {
+            "description": "klazz",
+            "prefix": "B"
+          },
+          {
+            "description": "There is no Class in Java",
+            "prefix": "D"
+          }
+        ],
+        "order": 1,
+        "title": "How do you define a class in Java"
+      }
+    ]
+  }
