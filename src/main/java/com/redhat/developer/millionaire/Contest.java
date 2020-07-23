@@ -36,7 +36,7 @@ public class Contest extends PanacheEntity {
     public int numberOfQuestions;
 
     @Column
-    Duration timeBetweenQuestions = Duration.ofMinutes(1);
+    public Duration timeBetweenQuestions = Duration.ofMinutes(1);
 
     public static Optional<Contest> findByContestId(String contestId) {
         return Contest.find("contestId", contestId).singleResultOptional();

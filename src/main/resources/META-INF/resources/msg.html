@@ -17,11 +17,11 @@
         <div class="row">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title" id="question" data-question-id="0">Card title</h5>
-                    <button type="button" class="btn btn-light" id="a0" data-answer-id="0">Light</button>
-                    <button type="button" class="btn btn-light" id="a1" data-answer-id="0">Light</button>
-                    <button type="button" class="btn btn-light" id="a2" data-answer-id="0">Light</button>
-                    <button type="button" class="btn btn-light" id="a3" data-answer-id="0">Light</button>
+                    <h5 class="card-title" id="question" data-question-id="0"></h5>
+                    <button type="button" class="btn btn-light" id="a0" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-light" id="a1" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-light" id="a2" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-light" id="a3" data-answer-id="0"></button>
                 </div>
             </div>
             <div class="card">
@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="row-score">
             <h2>Final Score Board</h2>
             <table class="table" id="score">
                 <tbody>
@@ -55,7 +55,9 @@
 
     function startCounter() {
         var timer = new easytimer.Timer()
-        timer.start({countdown: true, startValues: {seconds: 20}});
+        var timeoutInSeconds = parseInt(sessionStorage.getItem("timeout"))
+        console.log(timeoutInSeconds)
+        timer.start({countdown: true, startValues: {seconds: timeoutInSeconds}});
         $('#countdown .values').html(timer.getTimeValues().toString());
 
         timer.addEventListener('secondsUpdated', function (e) {
@@ -87,7 +89,7 @@
         sessionStorage.setItem("pushedButton", buttonId)
 
         $.post({
-            url: "/admin/question/answer/" + contestId + "/" + questionId + "/" + aId,
+            url: "/user/question/answer/" + contestId + "/" + questionId + "/" + aId,
             headers: {
                 "userId": userId
             },
@@ -131,7 +133,6 @@
                 incorrectAnswer(buttonId)
             }
         }
-
     }
 
     function showScore(message) {
@@ -153,6 +154,8 @@
                     )
                 )
         }
+
+        $("#row-score").show()
     }
 
     function revealResult(message) {
@@ -199,20 +202,23 @@
 
     $(document).ready(function() {
 
-        if (sessionStorage.getItem(username) == null) {
+        $("#row-score").hide()
+
+        if (sessionStorage.getItem("username") == null) {
             $.ajax({
                 dataType: 'json',
-                url: "/admin/register", 
+                url: "/user/register", 
                 success: function(data, status) {
                     $("#welcome").html("Welcome " + data.user)
                     sessionStorage.setItem("username", data.user)
                     sessionStorage.setItem("userId", data.userId)
                     sessionStorage.setItem("contestId", data.contestId)
+                    sessionStorage.setItem("timeout", data.timeoutInSeconds)
                 }
             });
         } else {
             // it is a reload of the page
-            sessionStorage.setItem("username", sessionStorage.getItem(username))
+            sessionStorage.setItem("username", sessionStorage.getItem("username"))
         }
 
         disableButtons()
@@ -236,7 +242,7 @@
     });
 
 
-    var source = new EventSource("/admin/stream");
+    var source = new EventSource("/user/stream");
     source.onmessage = function (event) {
         // this might change when Quarkus supports the SSE types so we can fill on server side the type of event.
         

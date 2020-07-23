@@ -5,6 +5,7 @@ public class AccessContestDTO {
     private String user;
     private String userId;
     private String contestId;
+    private long timeoutInSeconds = 60;
 
     public String getUser() {
         return user;
@@ -18,14 +19,19 @@ public class AccessContestDTO {
         return userId;
     }
 
-    private AccessContestDTO(String userId, String user, String contestId) {
+    public long getTimeoutInSeconds() {
+        return timeoutInSeconds;
+    }
+
+    private AccessContestDTO(String userId, String user, String contestId, long timeoutInSeconds) {
         this.user = user;
         this.userId = userId;
         this.contestId = contestId;
+        this.timeoutInSeconds = timeoutInSeconds;
     }
 
     public static AccessContestDTO of(Gamer user, Contest contest) {
-        return new AccessContestDTO(user.userId, user.username, contest.contestId);
+        return new AccessContestDTO(user.userId, user.username, contest.contestId, contest.timeBetweenQuestions.toSeconds());
     }
 
 }

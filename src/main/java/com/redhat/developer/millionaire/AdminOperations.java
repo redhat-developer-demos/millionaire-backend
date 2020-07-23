@@ -3,15 +3,12 @@ package com.redhat.developer.millionaire;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,9 +36,6 @@ public class AdminOperations {
     ContestState state;
 
     @Inject
-    ScoreInformation scoreInformation;
-
-    @Inject
     QuestionsManager questionManager;
 
     @Inject
@@ -50,17 +44,14 @@ public class AdminOperations {
     @Inject
     QuestionRoller task;
 
-    @Inject
-    UsernameGenerator nameGenerator;
-
-    @Inject @Channel("new-question") Multi<String> streamOfQuestions;
+    @Inject @Channel("admin-stream") Multi<String> streamOfAdmin;
 
     @GET
     @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
     public Multi<String> stream() {
-        return streamOfQuestions;
+        return streamOfAdmin;
     }
 
     @POST
@@ -125,6 +116,9 @@ public class AdminOperations {
     @Path("/init/{contestId}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response initContest(@PathParam("contestId") String contestId) {
+
+        System.out.println("Initializing " + contestId);
+
         return Contest.findByContestId(contestId)
             .map(contest -> {
                 state.startContest(contest);
@@ -135,29 +129,15 @@ public class AdminOperations {
             );
     }
 
-    @GET
-    @Path("/register")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response registerUser() {
-        return state.getCurrentContest()
-            .map(c -> {
-                    String username = nameGenerator.getName();
-                    String userId = identifierGenerator.generateId(username);
 
-                    final Gamer user = new Gamer();
-                    user.username = username;
-                    user.userId = userId;
-                    user.persist();
-                    return Response.ok(AccessContestDTO.of(user, c)).build();
-            })
-            .orElseGet(() -> Response.status(Status.NOT_FOUND)
-            .entity("No Running Contest").build());
-    }
 
     @POST
     @Path("/start/{contestId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response startContest(@PathParam("contestId") String contestId) {
+
+        System.out.println("Starting " + contestId);
+
         Response response = state.getCurrentContest()
             .filter(c -> c.contestId.equals(contestId))
             .map(c -> {
@@ -183,6 +163,9 @@ public class AdminOperations {
     @Path("/question/{contestId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response sendQuestion(@PathParam("contestId") String contestId) {
+
+        System.out.println("Sending next question for " + contestId);
+
         if (!validCurrentContest(contestId)) {
             return Response.status(Status.NOT_FOUND).build();
         }
@@ -193,40 +176,18 @@ public class AdminOperations {
         }
 
         ServerSideEventMessage nextQuestion = task.sendNextQuestion();
-        return Response.ok().entity(nextQuestion).build();
+        return Response.accepted().entity(nextQuestion).build();
 
     }
 
-    @POST
-    @Path("/question/answer/{contestId}/{questionId}/{answer}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response answer(@PathParam("contestId") String contestId, 
-                            @PathParam("questionId") String questionId, 
-                            @PathParam("answer") Long answer,
-                            @NotNull @HeaderParam("userId") String userId) {
-        
-        if (!validCurrentContest(contestId) || !validCurrentQuestion(questionId)) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
-
-        final Optional<Answer> isCorrectAnswer = state.getCurrentQuestion()
-            .map(q -> q.correctAnswer)
-            .filter(a -> a.id.equals(answer));
-
-        if (isCorrectAnswer.isPresent()) {
-            scoreInformation.increment(userId);
-            return Response.ok().build();
-        } else {
-            scoreInformation.fail(userId);
-            return Response.status(Status.PRECONDITION_FAILED).build();
-        }
-
-    }
 
     @GET
     @Path("/question/answer/reveal/{contestId}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response reveal(@PathParam("contestId") String contestId) {
+
+        System.out.println("Revealing Answer " + contestId);
+
         if (!validCurrentContest(contestId)) {
             return Response.status(Status.NOT_FOUND).build();
         }
@@ -246,11 +207,6 @@ public class AdminOperations {
     @Path("/end")
     public Response endContest() {
         return Response.ok().build();
-    }
-
-    private boolean validCurrentQuestion(String questionId) {
-        final Question currentQuestion = state.getCurrentQuestion().orElse(new Question());
-        return questionId.equals(currentQuestion.questionId);
     }
 
     private boolean validCurrentContest(String contestId) {

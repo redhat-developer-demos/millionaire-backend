@@ -32,6 +32,10 @@ public class QuestionRoller {
     Emitter<String> questions;
 
     @Inject
+    @Channel("admin-stream")
+    Emitter<String> adminStream;
+
+    @Inject
     Scheduler quartz;
 
     @Inject
@@ -44,13 +48,16 @@ public class QuestionRoller {
     ContestState state;
 
     @Inject
+    Statistics statistics;
+
+    @Inject
     Vertx vertx;
 
     public ServerSideEventMessage sendNextQuestion() {
         Question nextQuestion = this.questionsManager.nextQuestion();
 
         final ShowQuestionDTO message = ShowQuestionDTO.of(nextQuestion);
-        this.send(new ServerSideEventDTO("question", message));
+        this.sendToGamers(new ServerSideEventDTO("question", message));
         start();
 
         return message;
@@ -59,14 +66,14 @@ public class QuestionRoller {
     public QuestionAnswerDTO sendRevealAnswers() {
         final Question question = state.getCurrentQuestion().get();
         final QuestionAnswerDTO questionAnswer = QuestionAnswerDTO.of(question);
-        this.send(new ServerSideEventDTO("reveal", questionAnswer));
+        this.sendToGamers(new ServerSideEventDTO("reveal", questionAnswer));
         return questionAnswer;
     }
 
     public ScoreDTO sendEndContest() {
         try {
             ScoreDTO finalScoreDTO = new ScoreDTO(gamerManager.getUsernameScore());
-            this.send(new ServerSideEventDTO("end", finalScoreDTO));
+            this.sendToGamers(new ServerSideEventDTO("end", finalScoreDTO));
             return finalScoreDTO;
         } catch(Exception e) {
             throw new IllegalStateException(e);
@@ -78,6 +85,7 @@ public class QuestionRoller {
                                 .withIdentity("questions", "millionaire")
                                 .build();
 
+        // xxx
         final Date triggerDate = new Date(System.currentTimeMillis() + (questionsManager.getTimeBetweenQuestionsInSeconds() * 1000));
         final Trigger trigger = newTrigger()
                                         .withIdentity("questionsTrigger", "millionaire")
@@ -90,11 +98,18 @@ public class QuestionRoller {
             }
     }
 
-    void send(ServerSideEventDTO serverSideEventDTO) {
+    void sendToGamers(ServerSideEventDTO serverSideEventDTO) {
         Jsonb jsonb = JsonbBuilder.create();
         String result = jsonb.toJson(serverSideEventDTO);
         System.out.println("sending: " + result);
         questions.send(result);
+    }
+
+    void sendToAdmin(ServerSideEventDTO serverSideEventDTO) {
+        Jsonb jsonb = JsonbBuilder.create();
+        String result = jsonb.toJson(serverSideEventDTO);
+        System.out.println("sending: " + result);
+        adminStream.send(result);
     }
 
     public void stop() {
@@ -106,8 +121,8 @@ public class QuestionRoller {
     }
 
     void sendEndOfTimeQuestion() {
-        System.out.println("Disable");
-        this.send(new ServerSideEventDTO("disable", new ServerSideEventMessage(){}));
+        this.sendToGamers(new ServerSideEventDTO("disable", new ServerSideEventMessage(){}));
+        this.sendToAdmin(new ServerSideEventDTO("disable", new StatisticsDTO(state.getCurrentQuestion().get().questionId, statistics)));
     }
 
     public static class SendEndOfTimeQuestion implements Job {

@@ -1,5 +1,7 @@
 package com.redhat.developer.millionaire;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,8 +11,6 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class ScoreInformation {
-    
-
 
     @Inject
     ContestState contestState;
@@ -26,10 +26,11 @@ public class ScoreInformation {
 
     public void increment(String user) {
 
-        long points = System.currentTimeMillis() - contestState.getQuestionTime();
+        long points = Duration.between(contestState.getQuestionTime(), Instant.now()).toSeconds();
+        
         // to avoid negative points
         points = Math.max(points, 0);
-        long finalScore = points == 0 ? 0 : timeBetweenQuestions - (points/1000);
+        long finalScore = points == 0 ? 0 : timeBetweenQuestions - points;
 
         this.score.computeIfPresent(user, (k, v) -> v + finalScore);
         this.score.computeIfAbsent(user, k -> finalScore);

@@ -1,5 +1,6 @@
 package com.redhat.developer.millionaire;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -10,13 +11,13 @@ public class ContestState {
     private Contest currentContest;
     private Question currentQuestion;
     private int questionNumber = 0;
-    private long questionTime;
+    private Instant questionTime;
     
     public void setQuestionTime() {
-        this.questionTime = System.currentTimeMillis();
+        this.questionTime = Instant.now();
     }
 
-    public long getQuestionTime() {
+    public Instant getQuestionTime() {
         return questionTime;
     }
 

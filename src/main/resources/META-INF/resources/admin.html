@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prices</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+
+</head>
+
+<body>
+    <div class="toast" id="result-toast" style="position: absolute; top: 0; right: 0;">
+        <div class="toast-header">
+            <strong class="mr-auto" id="toast-header"><i class="fa fa-grav"></i>Operation Result</strong>
+        </div>
+        <div class="toast-body">
+            <div id="toast-message"></div>
+        </div>
+    </div>
+    <div class="container">
+        <h1 id="welcome">Admin</h1>
+        <div class="row">
+            <div id="contest-id-form" class="input-group mb-3">
+                <input id="contest-id" type="text" class="form-control" placeholder="Contest Id" aria-label="Contest Id" aria-describedby="set-contest-id">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="button" id="set-contest-id">Set</button>
+                </div>
+            </div>
+            <div id="contest-control" class="btn-group" role="group" aria-label="Control">
+                <button id="init-contest" type="button" class="btn btn-secondary">Init</button>
+                <button id="start-contest" type="button" class="btn btn-secondary">Start</button>
+                <button id="next-question-contest" type="button" class="btn btn-secondary">Next Question</button>
+                <button id="reveal-answer-contest" type="button" class="btn btn-secondary">Reveal Answer</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title" id="question" data-question-id="0">Contest Stats</h5>
+                    <p>Current Question: <span id="current-question"></span></p>
+                    <p>Contest Status: <span id="contest-status" class="badge badge-secondary">Waiting</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Answer Statistics</h5>
+                    <div id="answer-stats">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="row-score">
+            <h2>Final Score Board</h2>
+            <table class="table" id="score">
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+<script>
+
+    function showScore(data) {
+        var listOfScores = data.scores
+
+        for(var i = 0; i < listOfScores.length; i++) {
+            var info = listOfScores[i];
+            $("#score").find('tbody')
+                .append($('<tr>')
+                    .append($('<th>')
+                            .attr("scope", "row")
+                            .text(i+1)
+                    )
+                    .append($('<td>')
+                            .text(info.username)
+                    )
+                    .append($('<td>')
+                            .text(info.score)
+                    )
+                )
+        }
+        $("#row-score").show()
+    }
+
+    function updateCurrentQuestion(data) {
+        $("#current-question").text(data.questionTitle)
+    }
+
+    $(document).ready(function() {
+        
+        $("#row-score").hide()
+        $("#contest-control").hide()
+        
+        $("#set-contest-id").click(function() {
+            var contestId = $("#contest-id").val()
+            sessionStorage.setItem("contest-id", contestId)
+
+            $("#contest-id-form").hide()
+            $("#contest-control").show()
+        })
+
+        $("#init-contest").click(function() {
+            var contestId = sessionStorage.getItem("contest-id")
+            $.post({
+                url: "/admin/init/" + contestId,
+                success: function(data, status) {
+                    $("#toast-message").text("Initialized Contest.")
+                    $("#result-toast").toast('show');
+
+                    $("#contest-status").text("Initialized")
+                    $("#contest-status").removeClass("badge-secondary")
+                    $("#contest-status").addClass("badge-primary")
+                },
+                error: function(data, status) {
+                    $("#toast-message").text("Error Initializing Contest. " + data)
+                    $("#result-toast").toast('show');
+                }
+            });
+        })
+
+        $("#start-contest").click(function() {
+            var contestId = sessionStorage.getItem("contest-id")
+            $.post({
+                url: "/admin/start/" + contestId,
+                dataType: "json",
+                success: function(data, status) {
+                    $("#toast-message").text("Started Contest.")
+                    $("#result-toast").toast('show');
+                    
+                    $("#contest-status").text("Ready")
+                    $("#contest-status").removeClass("badge-primary")
+                    $("#contest-status").addClass("badge-success")
+
+                    updateCurrentQuestion(data)
+                },
+                error: function(data, status) {
+                    $("#toast-message").text("Error Starting Contest. " + data)
+                    $("#result-toast").toast('show');
+                }
+            });
+        })
+
+        $("#reveal-answer-contest").click(function() {
+            var contestId = sessionStorage.getItem("contest-id")
+            $.get({
+                url: "/admin/question/answer/reveal/" + contestId,
+                success: function(data, status) {
+
+                    $("#contest-status").text("Revealed")
+                    $("#contest-status").removeClass("badge-warning")
+                    $("#contest-status").addClass("badge-info")
+
+                },
+                error: function(data, status) {
+                    $("#toast-message").text("Error Revealing Question. " + data)
+                    $("#result-toast").toast('show');
+                }
+            });
+        })
+
+        $("#next-question-contest").click(function() {
+            $("#answer-stats").empty()
+            var contestId = sessionStorage.getItem("contest-id")
+            $.get({
+                url: "/admin/question/" + contestId,
+                dataType: "json",
+                success: function(data, status) {
+
+                    if (status == 202) {
+                        $("#toast-message").text("Question Sent.")
+                        $("#result-toast").toast('show');
+                        
+                        $("#contest-status").text("Running")
+                        $("#contest-status").removeClass("badge-info")
+                        $("#contest-status").removeClass("badge-warning")
+                        $("#contest-status").addClass("badge-success")
+
+                        updateCurrentQuestion(data)
+                    } else {
+                        // it is the end show scores
+                        $("#contest-status").text("End")
+                        $("#contest-status").removeClass("badge-info")
+                        $("#contest-status").removeClass("badge-warning")
+                        $("#contest-status").addClass("badge-danger")
+                        showScore(data)
+                    }
+                },
+                error: function(data, status) {
+                    $("#toast-message").text("Error Sending the next Question. " + data)
+                    $("#result-toast").toast('show');
+                }
+            });
+        })
+
+
+    });
+
+    function timeoutQuestion(message) {
+
+        $("#answer-stats").empty()
+
+        $("#contest-status").text("Timeout")
+        $("#contest-status").removeClass("badge-success")
+        $("#contest-status").addClass("badge-warning")
+
+        var stats = message.stats
+
+        for(var i = 0; i < stats.length; i++) {
+            var stat = stats[i];
+            
+            $("#answer-stats")
+                .append($('<p>')
+                            .text(stat.answer + ": " + stat.count)
+                )
+        }
+
+    }
+
+    var source = new EventSource("/admin/stream");
+    source.onmessage = function (event) {
+        // this might change when Quarkus supports the SSE types so we can fill on server side the type of event.
+        
+        var incomingData = event.data
+        var sseContent = JSON.parse(incomingData)
+
+        switch (sseContent.type) {
+
+            case "disable": {
+                timeoutQuestion(sseContent.content)
+                break;
+            }
+
+        }
+
+    };
+
+</script>
+
+</html>
