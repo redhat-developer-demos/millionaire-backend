@@ -1,4 +1,4 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

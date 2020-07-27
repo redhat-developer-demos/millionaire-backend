@@ -5,6 +5,9 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.redhat.developer.millionaire.model.Contest;
+import com.redhat.developer.millionaire.model.Question;
+
 @ApplicationScoped
 public class ContestState {
     
@@ -12,7 +15,14 @@ public class ContestState {
     private Question currentQuestion;
     private int questionNumber = 0;
     private Instant questionTime;
-    
+  
+    public void reset() {
+        this.currentContest = null;
+        this.currentQuestion = null;
+        this.questionNumber = 0;
+        this.questionTime = null;
+    }
+
     public void setQuestionTime() {
         this.questionTime = Instant.now();
     }

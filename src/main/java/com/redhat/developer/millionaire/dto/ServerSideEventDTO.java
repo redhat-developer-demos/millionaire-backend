@@ -1,4 +1,4 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
 
 // Temporal class until Quarkus supports OutboundSSE
 public class ServerSideEventDTO {

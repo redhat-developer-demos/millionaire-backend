@@ -1,4 +1,4 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.model;
 
 import java.util.HashSet;
 import java.util.Set;

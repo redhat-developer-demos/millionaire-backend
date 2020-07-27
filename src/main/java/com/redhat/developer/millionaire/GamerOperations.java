@@ -17,6 +17,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.redhat.developer.millionaire.dto.AccessContestDTO;
+import com.redhat.developer.millionaire.model.Answer;
+import com.redhat.developer.millionaire.model.Contest;
+import com.redhat.developer.millionaire.model.Gamer;
+import com.redhat.developer.millionaire.model.Question;
+
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.jboss.resteasy.annotations.SseElementType;
 
@@ -41,6 +47,9 @@ public class GamerOperations {
     @Inject
     ScoreInformation scoreInformation;
 
+    @Inject
+    QuestionRoller task;
+
     @Inject @Channel("new-question") Multi<String> streamOfQuestions;
 
     @GET
@@ -64,6 +73,9 @@ public class GamerOperations {
                     user.username = username;
                     user.userId = userId;
                     user.persist();
+
+                    statistics.incrNumberOfUsers();
+                    task.sendGamerCounter();
                     return Response.ok(AccessContestDTO.of(user, c)).build();
             })
             .orElseGet(() -> Response.status(Status.NOT_FOUND)
@@ -91,6 +103,7 @@ public class GamerOperations {
 
         updateStats(questionId, answerId);
         setQuestionAnsweredyUser(userId);
+        task.sendAnswersCounter();
 
         final Optional<Answer> isCorrectAnswer = state.getCurrentQuestion()
             .map(q -> q.correctAnswer)
@@ -134,7 +147,8 @@ public class GamerOperations {
     }
 
     private boolean isInsideTimeframe() {
-        final Instant endTimeForAnswering = state.getQuestionTime()
+        final Instant questionTime = state.getQuestionTime();
+        final Instant endTimeForAnswering = questionTime
                 .plus(state.getCurrentContest().get().timeBetweenQuestions);
 
         return Instant.now().isBefore(endTimeForAnswering);

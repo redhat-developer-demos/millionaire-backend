@@ -14,14 +14,14 @@
     <div class="container">
         <h1 id="welcome">Welcome</h1>
         <h2>Questions</h2>
-        <div class="row">
+        <div class="row" id="row-game">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title" id="question" data-question-id="0"></h5>
-                    <button type="button" class="btn btn-light" id="a0" data-answer-id="0"></button>
-                    <button type="button" class="btn btn-light" id="a1" data-answer-id="0"></button>
-                    <button type="button" class="btn btn-light" id="a2" data-answer-id="0"></button>
-                    <button type="button" class="btn btn-light" id="a3" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-secondary" id="a0" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-secondary" id="a1" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-secondary" id="a2" data-answer-id="0"></button>
+                    <button type="button" class="btn btn-secondary" id="a3" data-answer-id="0"></button>
                 </div>
             </div>
             <div class="card">
@@ -78,6 +78,8 @@
 
     function clickAnswer(buttonId) {
         
+        $("#" + buttonId).removeClass("btn-secondary")
+        $("#" + buttonId).addClass("btn-primary")
         disableButtons()
 
         var contestId = sessionStorage.getItem("contestId")
@@ -103,9 +105,10 @@
     }
 
     function resetColors(buttonId) {
-        $("#" + buttonId).removeClass("btn-light")
+        $("#" + buttonId).removeClass("btn-secondary")
         $("#" + buttonId).removeClass("btn-danger")
         $("#" + buttonId).removeClass("btn-success")
+        $("#" + buttonId).removeClass("btn-primary")
     }
 
     function resetAnswerInformation() {
@@ -182,26 +185,26 @@
         var a0 = document.getElementById("a0")
         a0.innerHTML = answers[0].prefix + ') ' + answers[0].answerDescription
         a0.dataset.answerId=answers[0].answerId
-        a0.className="btn btn-light"
+        a0.className="btn btn-secondary"
                 
         var a1 = document.getElementById("a1")
         a1.innerHTML = answers[1].prefix + ') ' + answers[1].answerDescription
         a1.dataset.answerId=answers[1].answerId
-        a1.className="btn btn-light"
+        a1.className="btn btn-secondary"
 
         var a2 = document.getElementById("a2")
         a2.innerHTML = answers[2].prefix + ') ' + answers[2].answerDescription
         a2.dataset.answerId=answers[2].answerId
-        a2.className="btn btn-light"
+        a2.className="btn btn-secondary"
 
         var a3 = document.getElementById("a3")
         a3.innerHTML = answers[3].prefix + ') ' + answers[3].answerDescription
         a3.dataset.answerId=answers[3].answerId
-        a3.className="btn btn-light"
+        a3.className="btn btn-secondary"
     }
 
     $(document).ready(function() {
-
+        $("#row-game").hide()
         $("#row-score").hide()
 
         if (sessionStorage.getItem("username") == null) {
@@ -246,9 +249,10 @@
     source.onmessage = function (event) {
         // this might change when Quarkus supports the SSE types so we can fill on server side the type of event.
         
+        
+        $("#row-game").show()
         var incomingData = event.data
         var sseContent = JSON.parse(incomingData)
-
         switch (sseContent.type) {
             
             case "end": {

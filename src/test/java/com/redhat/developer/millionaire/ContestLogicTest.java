@@ -3,6 +3,7 @@ package com.redhat.developer.millionaire;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;

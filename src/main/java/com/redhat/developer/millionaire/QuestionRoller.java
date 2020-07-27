@@ -10,6 +10,15 @@ import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
+import com.redhat.developer.millionaire.dto.GamerCounterDTO;
+import com.redhat.developer.millionaire.dto.QuestionAnswerDTO;
+import com.redhat.developer.millionaire.dto.ScoreDTO;
+import com.redhat.developer.millionaire.dto.ServerSideEventDTO;
+import com.redhat.developer.millionaire.dto.ServerSideEventMessage;
+import com.redhat.developer.millionaire.dto.ShowQuestionDTO;
+import com.redhat.developer.millionaire.dto.StatisticsDTO;
+import com.redhat.developer.millionaire.model.Question;
+
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.quartz.Job;
@@ -63,6 +72,18 @@ public class QuestionRoller {
         return message;
     }
 
+
+    // Probably I need to create a SSE manger and everything go through there
+    public void sendGamerCounter() {
+        final GamerCounterDTO gamerCounterDTO = new GamerCounterDTO(statistics.getNumberOfRegisteredUsers());
+        this.sendToAdmin(new ServerSideEventDTO("gamercounter", gamerCounterDTO));
+    }
+    public void sendAnswersCounter() {
+        // Just send that a new answer has been registered, let's count at client side, but when question
+        // has timed out then the statistics are updated from the server side.
+        this.sendToAdmin(new ServerSideEventDTO("answercounter", new ServerSideEventMessage(){}));
+    }
+
     public QuestionAnswerDTO sendRevealAnswers() {
         final Question question = state.getCurrentQuestion().get();
         final QuestionAnswerDTO questionAnswer = QuestionAnswerDTO.of(question);
@@ -85,7 +106,7 @@ public class QuestionRoller {
                                 .withIdentity("questions", "millionaire")
                                 .build();
 
-        // xxx
+        // TODO change
         final Date triggerDate = new Date(System.currentTimeMillis() + (questionsManager.getTimeBetweenQuestionsInSeconds() * 1000));
         final Trigger trigger = newTrigger()
                                         .withIdentity("questionsTrigger", "millionaire")

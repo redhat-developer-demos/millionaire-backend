@@ -13,12 +13,19 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.redhat.developer.millionaire.ContestDTO.AnswerDTO;
-import com.redhat.developer.millionaire.ContestDTO.QuestionDTO;
+import com.redhat.developer.millionaire.dto.ContestDTO;
+import com.redhat.developer.millionaire.dto.QuestionAnswerDTO;
+import com.redhat.developer.millionaire.dto.ScoreDTO;
+import com.redhat.developer.millionaire.dto.ServerSideEventMessage;
+import com.redhat.developer.millionaire.dto.ShowQuestionDTO;
+import com.redhat.developer.millionaire.model.Answer;
+import com.redhat.developer.millionaire.model.Contest;
+import com.redhat.developer.millionaire.model.Question;
 
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.jboss.resteasy.annotations.SseElementType;
@@ -34,6 +41,12 @@ public class AdminOperations {
 
     @Inject
     ContestState state;
+
+    @Inject
+    Statistics statistics;
+
+    @Inject
+    ScoreInformation scoreInformation;
 
     @Inject
     QuestionsManager questionManager;
@@ -72,18 +85,18 @@ public class AdminOperations {
             contest.timeBetweenQuestions = contestDTO.getDurationBetweenQuestions();
         }
 
-        List<QuestionDTO> questions = contestDTO.getQuestions();
+        List<ContestDTO.QuestionDTO> questions = contestDTO.getQuestions();
         Collections.sort(questions);
         Collections.reverse(questions);
 
         Question previousQuestion = null;
         int numberOfQuestions = 0;
-        for (QuestionDTO questionDTO : questions) {
+        for (ContestDTO.QuestionDTO questionDTO : questions) {
             Question question = new Question();
             question.title = questionDTO.getTitle();
             question.questionId = identifierGenerator.generateId(question.title);
 
-            final AnswerDTO correctAnswerDTO = questionDTO.getCorrectAnswer();
+            final com.redhat.developer.millionaire.dto.ContestDTO.AnswerDTO correctAnswerDTO = questionDTO.getCorrectAnswer();
             question.correctAnswer = persistAnswer(correctAnswerDTO);
 
             question.answers = questionDTO.getIncorrectAnswers().stream()
@@ -106,7 +119,7 @@ public class AdminOperations {
         return contest;
     }
 
-    private Answer persistAnswer(AnswerDTO answerDTO) {
+    private Answer persistAnswer(ContestDTO.AnswerDTO answerDTO) {
         Answer answer = answerDTO.toAnswer();
         answer.persist();
         return answer;
@@ -199,13 +212,17 @@ public class AdminOperations {
     @GET
     @Path("/score")
     @Produces(MediaType.APPLICATION_JSON)
-    public ScoreDTO getScore() {
-        return new ScoreDTO(gamerManager.getUsernameScore());
+    public ScoreDTO getScore(@QueryParam("limit") int limit) {
+        return new ScoreDTO(gamerManager.getUsernameScore(limit));
     }
    
     @POST
-    @Path("/end")
+    @Path("/reset")
     public Response endContest() {
+        state.reset();
+        statistics.reset();
+        scoreInformation.reset();
+
         return Response.ok().build();
     }
 

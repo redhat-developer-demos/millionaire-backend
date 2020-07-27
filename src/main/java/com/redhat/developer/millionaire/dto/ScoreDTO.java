@@ -1,4 +1,4 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
 
 import java.util.List;
 

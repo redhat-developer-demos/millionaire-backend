@@ -1,15 +1,19 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.redhat.developer.millionaire.Statistics;
+
 public class StatisticsDTO implements ServerSideEventMessage {
     
     public List<StatisticDTO> stats;
+    public long totalAnsweredQuestions;
 
     public StatisticsDTO(String questionId, Statistics statistics) {
+        this.totalAnsweredQuestions = statistics.getTotalAnsweredQuestions();
         this.stats = of(questionId, statistics);
         Collections.sort(this.stats);
     }

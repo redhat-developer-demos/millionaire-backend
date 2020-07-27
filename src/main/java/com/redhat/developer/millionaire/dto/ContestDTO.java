@@ -1,8 +1,10 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.redhat.developer.millionaire.model.Answer;
 
 public class ContestDTO {
     

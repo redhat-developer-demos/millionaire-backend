@@ -1,8 +1,10 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.redhat.developer.millionaire.model.Question;
 
 public class ShowQuestionDTO implements ServerSideEventMessage {
     

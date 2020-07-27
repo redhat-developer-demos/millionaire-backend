@@ -3,6 +3,8 @@ package com.redhat.developer.millionaire;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.redhat.developer.millionaire.model.Question;
+
 @ApplicationScoped
 public class QuestionsManager {
 

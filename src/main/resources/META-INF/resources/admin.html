@@ -35,6 +35,7 @@
                 <button id="start-contest" type="button" class="btn btn-secondary">Start</button>
                 <button id="next-question-contest" type="button" class="btn btn-secondary">Next Question</button>
                 <button id="reveal-answer-contest" type="button" class="btn btn-secondary">Reveal Answer</button>
+                <button id="reset-contest" type="button" class="btn btn-secondary">Reset Contest</button>
             </div>
         </div>
         <div class="row">
@@ -55,9 +56,18 @@
                     </div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Content Statistics</h5>
+                    <div id="answer-stats">
+                        <p>Total Players: <span id="total-players">0</span></p>
+                        <p>Total Answers: <span id="total-answers">0</span></p>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="row" id="row-score">
-            <h2>Final Score Board</h2>
+            <h2 id="score-board-title"></h2>
             <table class="table" id="score">
                 <tbody>
 
@@ -71,7 +81,13 @@
 
 <script>
 
+    function changeButtonMode(buttonId, isDisabled) {
+        $("#" + buttonId).prop('disabled', isDisabled);
+    }
+
     function showScore(data) {
+        $("#score").find('tbody').empty()
+
         var listOfScores = data.scores
 
         for(var i = 0; i < listOfScores.length; i++) {
@@ -108,6 +124,12 @@
 
             $("#contest-id-form").hide()
             $("#contest-control").show()
+
+            changeButtonMode("init-contest", false)
+            changeButtonMode("start-contest", true)
+            changeButtonMode("next-question-contest", true)
+            changeButtonMode("reveal-answer-contest", true)
+
         })
 
         $("#init-contest").click(function() {
@@ -121,6 +143,10 @@
                     $("#contest-status").text("Initialized")
                     $("#contest-status").removeClass("badge-secondary")
                     $("#contest-status").addClass("badge-primary")
+
+                    changeButtonMode("reset-contest", true)
+                    changeButtonMode("init-contest", true)
+                    changeButtonMode("start-contest", false)
                 },
                 error: function(data, status) {
                     $("#toast-message").text("Error Initializing Contest. " + data)
@@ -142,6 +168,7 @@
                     $("#contest-status").removeClass("badge-primary")
                     $("#contest-status").addClass("badge-success")
 
+                    changeButtonMode("start-contest", true)
                     updateCurrentQuestion(data)
                 },
                 error: function(data, status) {
@@ -161,6 +188,9 @@
                     $("#contest-status").removeClass("badge-warning")
                     $("#contest-status").addClass("badge-info")
 
+                    changeButtonMode("next-question-contest", false)
+                    changeButtonMode("reveal-answer-contest", true)
+
                 },
                 error: function(data, status) {
                     $("#toast-message").text("Error Revealing Question. " + data)
@@ -175,9 +205,11 @@
             $.get({
                 url: "/admin/question/" + contestId,
                 dataType: "json",
-                success: function(data, status) {
+                success: function(data, status, xhr) {
 
-                    if (status == 202) {
+                    changeButtonMode("next-question-contest", true)
+
+                    if (xhr.status == 202) {
                         $("#toast-message").text("Question Sent.")
                         $("#result-toast").toast('show');
                         
@@ -193,7 +225,10 @@
                         $("#contest-status").removeClass("badge-info")
                         $("#contest-status").removeClass("badge-warning")
                         $("#contest-status").addClass("badge-danger")
+                        $("#score-board-title").text("Final Score Board")
                         showScore(data)
+
+                        changeButtonMode("reset-contest", false)
                     }
                 },
                 error: function(data, status) {
@@ -203,11 +238,28 @@
             });
         })
 
+        $("#reset-contest").click(function() {
+            $.post({
+                url: "/admin/reset",
+                success: function(data, status, xhr) {
+                    location.reload(true);
+                    changeButtonMode("reset-contest", true)                
+                },
+                error: function(data, status, xhr) {
+                    $("#toast-message").text("Error Resetting Contest. " + data)
+                    console.log(xhr.status)
+                    $("#result-toast").toast('show');
+                }
+            });
+
+        })
+
 
     });
 
     function timeoutQuestion(message) {
 
+        changeButtonMode("reveal-answer-contest", false)
         $("#answer-stats").empty()
 
         $("#contest-status").text("Timeout")
@@ -225,6 +277,33 @@
                 )
         }
 
+        $("#total-answers").text(message.totalAnsweredQuestions)
+
+    }
+
+    function updateGamerCount(message) {
+        $("#total-players").text(message.numberOfGamers)
+    }
+
+    function updateAnswerCounter() {
+        var count = parseInt($("#total-answers").text())
+        count++;
+        $("#total-answers").text(count)
+    }
+
+    function getCurrentScoreBoard() {
+        $.get({
+            url: "/admin/score?limit=10",
+            dataType: "json",
+            success: function(data, status, xhr) {
+                $("#score-board-title").text("Current Top 10")
+                showScore(data)
+            },
+            error: function(data, status) {
+                $("#toast-message").text("Error Getting Score Board. " + data)
+                $("#result-toast").toast('show');
+            }
+        });
     }
 
     var source = new EventSource("/admin/stream");
@@ -238,9 +317,19 @@
 
             case "disable": {
                 timeoutQuestion(sseContent.content)
+                getCurrentScoreBoard()
                 break;
             }
 
+            case "gamercounter": {
+                updateGamerCount(sseContent.content)
+                break;
+            }
+
+            case "answercounter": {
+                updateAnswerCounter()
+                break;
+            }
         }
 
     };

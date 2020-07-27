@@ -1,4 +1,7 @@
-package com.redhat.developer.millionaire;
+package com.redhat.developer.millionaire.dto;
+
+import com.redhat.developer.millionaire.model.Contest;
+import com.redhat.developer.millionaire.model.Gamer;
 
 public class AccessContestDTO {
     
