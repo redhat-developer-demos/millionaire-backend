@@ -1,0 +1,40 @@
+body {
+ background-image:  url("images/2020_DevNation_BG_OBS_GFX.png");
+ color: white;
+}
+
+.card-title {
+    color: black;
+}
+
+.card-body {
+    color: black;
+}
+
+.vertical-center {
+    min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+    min-height: 25vh; /* These two lines are counted as one :-)       */
+  
+    display: flex;
+    align-items: center;
+}
+
+.question-card {
+    border-radius: 10px;
+    border-style: solid;
+    opacity: 0.8;
+    background-color: beige;
+
+}
+
+.time-card {
+    left: 15px
+}
+
+#welcome {
+    color: blue;
+}
+
+#score {
+    color: white;
+}

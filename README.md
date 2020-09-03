@@ -11,6 +11,16 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw quarkus:dev
 ```
 
+## Security and authentification
+
+In dev mode the security is disabled. 
+In prod mode you will need a running Keycloak instance. 
+
+You can just do : `docker run --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -p 8180:8080 jboss/keycloak` 
+
+Then you access the Keycloak console `http://localhost:8180/auth` with `admin/admin` and you can import the realm available at the root of this repo `game-realm.json` and you will be all set, 2 users are available : `sebi/sebi` and `alex/alex` 
+
+
 ## Packaging and running the application
 
 The application can be packaged using `./mvnw package`.

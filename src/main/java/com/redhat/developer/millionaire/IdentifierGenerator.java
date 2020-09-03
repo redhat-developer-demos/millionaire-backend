@@ -14,7 +14,8 @@ public class IdentifierGenerator {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             md.update(from.getBytes());
             byte[] id = md.digest();
-            return Base64.getEncoder().encodeToString(id);
+            String encodedId = Base64.getEncoder().encodeToString(id);
+            return encodedId.replace('/', '_');
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }

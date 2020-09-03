@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -32,8 +32,10 @@ import org.jboss.resteasy.annotations.SseElementType;
 
 import io.smallrye.mutiny.Multi;
 
+
 @Path("/admin")
 @Transactional
+@ApplicationScoped
 public class AdminOperations {
 
     @Inject

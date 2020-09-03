@@ -1,0 +1,10 @@
+<html>
+    <body>
+        {#for question in questions}
+        <h2>{question.title}</h2> 
+        {#for answer in question.answers}
+        <p>{answer.description}</p>
+        {/for}
+        {/for}
+    </body>
+</html>

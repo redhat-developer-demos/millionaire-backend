@@ -1,0 +1,15 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: game2
+  namespace: thegame
+  annotations:
+    haproxy.router.openshift.io/timeout:  "90s"
+spec:
+  to:
+    kind: Service
+    name: millionaire-backend
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None

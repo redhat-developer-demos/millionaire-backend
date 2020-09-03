@@ -1,0 +1,16 @@
+.overlay-style {
+  background-color: green; 
+    color: aliceblue;
+}
+.overlay-question { 
+    border-style: solid;
+    border-width: 2px;
+    border-color: coral;
+    border-radius: 10px;
+}
+
+.btn-warning:disabled {
+  color: #212529;
+  background-color: #007bff;
+  border-color: #ffc107;
+}

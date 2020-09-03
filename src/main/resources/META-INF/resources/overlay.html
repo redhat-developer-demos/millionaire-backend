@@ -3,32 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Millionaire's Game</title>
+    <title>Prices</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
         integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-        <link rel="stylesheet" href="msg.css"/>
+    <link rel="stylesheet" href="overlay.css"
 </head>
 
-<body>
-    <div class="container">
-        <h1>Welcome <span id="welcome"></span></h1>
-        <h2 id="warning">Looks like you refreshed your browser ... Don't worry, just wait a few seconds, you will rejoin when the next question starts.</h2>
-        <div id="late">
-            <h2>The game will start soon, if you joined late, don't worry, just wait a few seconds, you will join the contest at the next question.</h2>
-            <br>
-            <h3>Rules :</h3>
-            <ul>
-                <li>You have 20 seconds to answer</li>
-                <li>Be careful ! You can click the answer only once</li>
-                <li>The fastest you answer correctly, the more points you get</li>
-                <li>When the counter is done, you answer will turn to green (correct) or red (incorrect)</li>
-                <li>The host will then reveal to everyone the correct answer</li>
-            </ul>
-        </div>
-            <div class="row vertical-center justify-content-center" id="row-game">
-            <div class="card question-card">
-                <div class="card-body">
+<body class="overlay-style">
+    <div class="container overlay-style">
+        <div class="row overlay-style" id="row-game">
+            <div class="card overlay-style">
+                <div class="card-body overlay-style overlay-question">
                     <h5 class="card-title" id="question" data-question-id="0"></h5>
                     <button type="button" class="btn btn-secondary" id="a0" data-answer-id="0"></button>
                     <button type="button" class="btn btn-secondary" id="a1" data-answer-id="0"></button>
@@ -36,8 +22,8 @@
                     <button type="button" class="btn btn-secondary" id="a3" data-answer-id="0"></button>
                 </div>
             </div>
-            <div class="card time-card">
-                <div class="card-body" id="countdown">
+            <div>
+                <div class="card-body overlay-style" id="countdown">
                     <div class="values"></div>
                 </div>
             </div>
@@ -56,8 +42,7 @@
 <script src="lib/easytimer.min.js"></script>
 
 <script>
-    var refreshed = true;
-    var late = true;
+
     function enableButtons() {
         changeButtonMode(false)
     }
@@ -131,7 +116,7 @@
 
     function correctAnswer(buttonId) {
         resetColors(buttonId)
-        $("#" + buttonId).addClass("btn-success")
+        $("#" + buttonId).addClass("btn-warning")
     }
 
     function incorrectAnswer(buttonId) {
@@ -219,18 +204,13 @@
     $(document).ready(function() {
         $("#row-game").hide()
         $("#row-score").hide()
-        $("#warning").hide()
-        $("#late").hide()
-        
 
         if (sessionStorage.getItem("username") == null) {
             $.ajax({
                 dataType: 'json',
                 url: "/user/register", 
                 success: function(data, status) {
-                    $("#welcome").html(data.user)
-                    $("#late").show()
-                    late = true;
+                    $("#welcome").html("Welcome " + data.user)
                     sessionStorage.setItem("username", data.user)
                     sessionStorage.setItem("userId", data.userId)
                     sessionStorage.setItem("contestId", data.contestId)
@@ -239,10 +219,7 @@
             });
         } else {
             // it is a reload of the page
-            //sessionStorage.setItem("username", sessionStorage.getItem("username"))
-            $("#welcome").html(sessionStorage.getItem("username"))
-            $("#warning").show()
-            refreshed = true;
+            sessionStorage.setItem("username", sessionStorage.getItem("username"))
         }
 
         disableButtons()
@@ -270,12 +247,8 @@
     source.onmessage = function (event) {
         // this might change when Quarkus supports the SSE types so we can fill on server side the type of event.
         
-        if(!refreshed ) {
-          $("#row-game").show()
-        }
-        if(!late ) {
-          $("#row-game").show()
-        }
+        
+        $("#row-game").show()
         var incomingData = event.data
         var sseContent = JSON.parse(incomingData)
         switch (sseContent.type) {
@@ -285,29 +258,12 @@
                 break;
             }
 
-            case "disable": {
-                disableButtons();
-                showUserResult();
+            case "reveal": {
+                revealResult(sseContent.content);
                 break;
             }
 
-            case "reveal": {
-                
-                 revealResult(sseContent.content);
-                 break;
-            }
-
             case "question": {
-                if(refreshed){
-                    $("#row-game").show();
-                    refreshed = false;
-                    $("#warning").hide()
-                }
-                if(late){
-                    $("#row-game").show();
-                    late = false;
-                    $("#late").hide()
-                }
                 enableButtons()
                 startCounter()
                 showAnswers(sseContent.content)

@@ -1,50 +1,226 @@
 {
-    "durationBetweenQuestions": "PT20S",
-    "name": "Java Wants To Be Milionaire",
-    "questions": [
-      {
-        "correctAnswer": {
-          "description": "Duke",
-          "prefix": "B"
-        },
-        "incorrectAnswers": [
-          {
-            "description": "Kuke",
-            "prefix": "C"
-          },
-          {
-            "description": "Tuki",
-            "prefix": "A"
-          },
-          {
-            "description": "Puki",
-            "prefix": "D"
-          }
-        ],
-        "order": 0,
-        "title": "What's the name of Java mascot?"
+  "durationBetweenQuestions": "PT20S",
+  "name": "Java Wants To Be Milionaire",
+  "questions": [
+    {
+      "correctAnswer": {
+        "description": "Duke",
+        "prefix": "B"
       },
-      {
-        "correctAnswer": {
-          "description": "class",
+      "incorrectAnswers": [
+        {
+          "description": "Puke",
+          "prefix": "C"
+        },
+        {
+          "description": "Tuki",
           "prefix": "A"
         },
-        "incorrectAnswers": [
-          {
-            "description": "struct",
-            "prefix": "C"
-          },
-          {
-            "description": "klazz",
-            "prefix": "B"
-          },
-          {
-            "description": "There is no Class in Java",
-            "prefix": "D"
-          }
-        ],
-        "order": 1,
-        "title": "How do you define a class in Java"
-      }
-    ]
-  }
+        {
+          "description": "Puki",
+          "prefix": "D"
+        }
+      ],
+      "order": 0,
+      "title": "What's the name of Java mascot?"
+    },
+    {
+      "correctAnswer": {
+        "description": "moisture farmers",
+        "prefix": "C"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "smugglers",
+          "prefix": "A"
+        },
+        {
+          "description": "rebels",
+          "prefix": "B"
+        },
+        {
+          "description": "none, they were retired",
+          "prefix": "D"
+        }
+      ],
+      "order": 1,
+      "title": "What job did Uncle Owen and Aunt Beru have on Tatooine ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "a standalone pod",
+        "prefix": "A"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "A Pod with a ReplicaSet associated",
+          "prefix": "C"
+        },
+        {
+          "description": "A Pod with no clothes",
+          "prefix": "B"
+        },
+        {
+          "description": "A Pod that cannot be scaled",
+          "prefix": "D"
+        }
+      ],
+      "order": 2,
+      "title": "A naked Pod is : "
+    },
+    {
+      "correctAnswer": {
+        "description": "21",
+        "prefix": "C"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "7",
+          "prefix": "A"
+        },
+        {
+          "description": "12",
+          "prefix": "B"
+        },
+        {
+          "description": "42",
+          "prefix": "D"
+        }
+      ],
+      "order": 3,
+      "title": "How many timelines exist in Back to the Future ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "Yes",
+        "prefix": "B"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "No",
+          "prefix": "A"
+        },
+        {
+          "description": "Yes since Java 14",
+          "prefix": "C"
+        },
+        {
+          "description": "It depends",
+          "prefix": "D"
+        }
+      ],
+      "order": 4,
+      "title": "StringBuilder is thread-safe"
+    },
+    {
+      "correctAnswer": {
+        "description": "It's removed from the service load balancer",
+        "prefix": "A"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "Pod is restarted",
+          "prefix": "C"
+        },
+        {
+          "description": "Pod is deleted",
+          "prefix": "B"
+        },
+        {
+          "description": "It's probably a naked pod",
+          "prefix": "D"
+        }
+      ],
+      "order": 5,
+      "title": "What happen if a readiness probe fails on a pod ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "Wedge Antilles",
+        "prefix": "A"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "Luke Skywalker",
+          "prefix": "B"
+        },
+        {
+          "description": "Lando Calrissian",
+          "prefix": "C"
+        },
+        {
+          "description": "Han Solo",
+          "prefix": "D"
+        }
+      ],
+      "order": 6,
+      "title": "Who is the only rebel pilot to survive aerial battles in all 3 original movies ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "Java 14",
+        "prefix": "C"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "Java 12",
+          "prefix": "A"
+        },
+        {
+          "description": "Java 11",
+          "prefix": "B"
+        },
+        {
+          "description": "Java Script",
+          "prefix": "D"
+        }
+      ],
+      "order": 7,
+      "title": "Which Java version introduced records ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "3270 to 1",
+        "prefix": "D"
+      },
+      "incorrectAnswers": [
+        {
+          "description": ".067%",
+          "prefix": "A"
+        },
+        {
+          "description": "4.2 million to 1",
+          "prefix": "B"
+        },
+        {
+          "description": "43",
+          "prefix": "C"
+        }
+      ],
+      "order": 8,
+      "title": "What is the percentage likelihood that one can successfully navigate an asteroid field ?"
+    },
+    {
+      "correctAnswer": {
+        "description": "Unique elements with order",
+        "prefix": "D"
+      },
+      "incorrectAnswers": [
+        {
+          "description": "Duplicated elements with order",
+          "prefix": "A"
+        },
+        {
+          "description": "Duplicated elements without order",
+          "prefix": "B"
+        },
+        {
+          "description": "Unique elements without order",
+          "prefix": "C"
+        }
+      ],
+      "order": 9,
+      "title": "A TreeSet collection in Java contains"
+    }
+  ]
+}

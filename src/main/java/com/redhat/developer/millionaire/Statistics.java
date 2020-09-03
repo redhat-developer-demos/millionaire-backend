@@ -3,6 +3,7 @@ package com.redhat.developer.millionaire;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import io.quarkus.arc.Lock;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -10,25 +11,30 @@ import javax.enterprise.context.ApplicationScoped;
 // Needs to lock methods (waiting for Quarkus 1.7.0 for better experience)
 
 @ApplicationScoped
+@Lock
 public class Statistics {
     
     private long numberOfRegisteredUsers = 0;
 
     private Map<String, QuestionCounter> questions = new HashMap<>();
 
+    
     public void reset() {
         this.numberOfRegisteredUsers = 0;
         this.questions.clear();
     }
 
+   
     public void incrNumberOfUsers() {
         numberOfRegisteredUsers++;
     }
 
+  
     public long getNumberOfRegisteredUsers() {
         return numberOfRegisteredUsers;
     }
 
+    
     public long getTotalAnsweredQuestions() {
         return questions.values()
                     .stream()
@@ -36,15 +42,18 @@ public class Statistics {
                     .sum();
     }
 
+   
     public void incr(String questionId, String answerId) {
         questions.computeIfAbsent(questionId, k -> new QuestionCounter())
                  .incr(answerId);
     }
 
+    
     public Optional<QuestionCounter> getQuestionCounter(String questionId) {
         return Optional.ofNullable(questions.get(questionId));
     }
 
+    
     public Map<String, QuestionCounter> getQuestions() {
         return questions;
     }

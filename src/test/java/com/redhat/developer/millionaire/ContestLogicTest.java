@@ -3,7 +3,6 @@ package com.redhat.developer.millionaire;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -19,7 +18,8 @@ import java.util.Optional;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import com.redhat.developer.millionaire.ShowQuestionDTO.ShowAnswerDTO;
+import com.redhat.developer.millionaire.dto.ShowQuestionDTO;
+import com.redhat.developer.millionaire.dto.ShowQuestionDTO.ShowAnswerDTO;
 
 
 @QuarkusTest
@@ -114,7 +114,7 @@ public class ContestLogicTest {
         final Jsonb jsonb = JsonbBuilder.create();
         final ShowQuestionDTO question = jsonb.fromJson(currentQuestion, ShowQuestionDTO.class);
 
-        final Optional<ShowAnswerDTO> correctAnswer = question.answers.stream().filter(a -> a.answerDescription.equals("Kuke")).findFirst();
+        final Optional<com.redhat.developer.millionaire.dto.ShowQuestionDTO.ShowAnswerDTO> correctAnswer = question.answers.stream().filter(a -> a.answerDescription.equals("Kuke")).findFirst();
 
         given()
             .header("userId", "1111")
