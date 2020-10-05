@@ -146,7 +146,10 @@ public class QuestionRoller {
 
     void sendEndOfTimeQuestion() {
         this.sendToGamers(new ServerSideEventDTO("disable", new ServerSideEventMessage(){}));
-        this.sendToAdmin(new ServerSideEventDTO("disable", new StatisticsDTO(state.getCurrentQuestion().get().questionId, statistics)));
+        Question question = state.getCurrentQuestion().get();
+        StatisticsDTO content = new StatisticsDTO(question.questionId, question.correctAnswer.prefix, statistics);
+        // Statistics are already calculated and can be consumed
+        this.sendToAdmin(new ServerSideEventDTO("disable", content));
     }
 
     public static class SendEndOfTimeQuestion implements Job {

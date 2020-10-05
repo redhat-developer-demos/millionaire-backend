@@ -10,15 +10,17 @@ import com.redhat.developer.millionaire.Statistics;
 public class StatisticsDTO implements ServerSideEventMessage {
     
     public List<StatisticDTO> stats;
+    public long percentageOfRightAnswers;
     public long totalAnsweredQuestions;
 
-    public StatisticsDTO(String questionId, Statistics statistics) {
+    public StatisticsDTO(String questionId, String correctAnswerPrefix, Statistics statistics) {
         this.totalAnsweredQuestions = statistics.getTotalAnsweredQuestions();
-        this.stats = of(questionId, statistics);
+        this.stats = of(questionId, correctAnswerPrefix, statistics);
         Collections.sort(this.stats);
+        percentageOfRightAnswers = calculatePercentageOfRightAnswers(correctAnswerPrefix);
     }
 
-    public static List<StatisticDTO> of(String questionId, Statistics statistics) {
+    public static List<StatisticDTO> of(String questionId, String correctAnswerPrefix, Statistics statistics) {
         return statistics.getQuestionCounter(questionId)
                     .map(qc -> qc.answers.entrySet().stream())
                     .orElseGet(() -> Map.<String, Long>of().entrySet().stream())
@@ -26,6 +28,20 @@ public class StatisticsDTO implements ServerSideEventMessage {
                             new StatisticDTO(e.getKey(), e.getValue())
                     )
                     .collect(Collectors.toList());
+    }
+
+    private long calculatePercentageOfRightAnswers(String correctAnswerPrefix) {
+        double total = 0;
+        double correct = 0;
+        for (StatisticDTO stat : stats) {
+            total += stat.count;
+
+            if (stat.answer.equals(correctAnswerPrefix)) {
+                correct += stat.count;
+            }
+        }
+        double percentage = correct == 0 ? correct : ((correct/total) * 100);
+        return (long) percentage;
     }
 
     public static class StatisticDTO implements Comparable<StatisticDTO> {

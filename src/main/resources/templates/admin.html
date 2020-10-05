@@ -55,6 +55,9 @@
                     <div id="answer-stats">
                         
                     </div>
+                    <div id="percentage-correct-answers">
+
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -202,6 +205,7 @@
 
         $("#next-question-contest").click(function() {
             $("#answer-stats").empty()
+            $("#percentage-correct-answers").empty()
             var contestId = sessionStorage.getItem("contest-id")
             $.get({
                 url: "/admin/question/" + contestId,
@@ -279,7 +283,10 @@
         }
 
         $("#total-answers").text(message.totalAnsweredQuestions)
-
+        $("#percentage-correct-answers")
+                .append($('<p>')
+                        .text("Percentage of correct answers: " + message.percentageOfRightAnswers + " %")
+                )
     }
 
     function updateGamerCount(message) {
