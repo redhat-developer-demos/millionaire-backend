@@ -1,0 +1,39 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: millionaire-schema
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+        - name: pgsql12-client
+          image: quay.io/rhdevelopers/openshift-pgsql12-primary:centos7-clients
+          imagePullPolicy: Always
+          env:
+            - name: PGHOST
+              value: postgresql
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-secret
+                  key: database-db
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-secret
+                  key: database-username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-secret
+                  key: database-username-password
+          command: ["/usr/pgsql-12/bin/psql"]
+          args:
+            [
+              "--dbname=gamedb",
+              "--no-password",
+            ]
+      restartPolicy: Never
+  backoffLimit: 1

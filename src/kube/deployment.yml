@@ -1,52 +1,79 @@
-kind: Deployment
-apiVersion: apps/v1
+---
+apiVersion: v1
+kind: ServiceAccount
 metadata:
   annotations:
-    app.quarkus.io/build-timestamp: '2020-08-15 - 18:21:59 +0000'
-    app.quarkus.io/commit-id: 6e0cb83417ed81b4aff7d8a9148357ab2062df87
-    app.quarkus.io/vcs-url: 'https://github.com/sebastienblanc/millionaire-backend.git'
-    deployment.kubernetes.io/revision: '27'
-    kubectl.kubernetes.io/last-applied-configuration: >
-      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"app.quarkus.io/build-timestamp":"2020-08-15
-      - 18:21:59
-      +0000","app.quarkus.io/commit-id":"6e0cb83417ed81b4aff7d8a9148357ab2062df87","app.quarkus.io/vcs-url":"https://github.com/sebastienblanc/millionaire-backend.git"},"labels":{"app.kubernetes.io/name":"millionaire-backend","app.kubernetes.io/version":"1.0-SNAPSHOT"},"name":"millionaire-backend","namespace":"thegame"},"spec":{"replicas":1,"selector":{"matchLabels":{"app.kubernetes.io/name":"millionaire-backend","app.kubernetes.io/version":"1.0-SNAPSHOT"}},"template":{"metadata":{"annotations":{"app.quarkus.io/build-timestamp":"2020-08-15
-      - 18:21:59
-      +0000","app.quarkus.io/commit-id":"6e0cb83417ed81b4aff7d8a9148357ab2062df87","app.quarkus.io/vcs-url":"https://github.com/sebastienblanc/millionaire-backend.git"},"labels":{"app.kubernetes.io/name":"millionaire-backend","app.kubernetes.io/version":"1.0-SNAPSHOT"}},"spec":{"containers":[{"env":[{"name":"KUBERNETES_NAMESPACE","valueFrom":{"fieldRef":{"fieldPath":"metadata.namespace"}}}],"image":"sebi2706/millionaire-backend:1.0-SNAPSHOT","imagePullPolicy":"IfNotPresent","name":"millionaire-backend","ports":[{"containerPort":8080,"name":"http","protocol":"TCP"}]}],"serviceAccount":"millionaire-backend"}}}}
-  selfLink: /apis/apps/v1/namespaces/thegame/deployments/millionaire-backend
-  resourceVersion: '3359537'
-  name: millionaire-backend
-  uid: 3db0ce2a-b2a5-404d-988c-fe168bb7947e
-  creationTimestamp: '2020-08-16T06:02:49Z'
-  generation: 55
-  namespace: thegame
+    app.quarkus.io/vcs-url: https://github.com/redhat-developer-demos/millionaire-backend.git
+    app.quarkus.io/build-timestamp: 2020-10-21 - 09:00:24 +0000
+    app.quarkus.io/commit-id: 83c3df2e5dc4d46bea31e2d381cabdee3a78a5d7
   labels:
     app.kubernetes.io/name: millionaire-backend
-    app.kubernetes.io/version: 1.0-SNAPSHOT
+    app.kubernetes.io/version: "2.7"
+  name: millionaire-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.quarkus.io/vcs-url: https://github.com/redhat-developer-demos/millionaire-backend.git
+    app.quarkus.io/build-timestamp: 2020-10-21 - 09:00:24 +0000
+    app.quarkus.io/commit-id: 83c3df2e5dc4d46bea31e2d381cabdee3a78a5d7
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '1800'
+  labels:
+    app.kubernetes.io/name: millionaire-backend
+    app.kubernetes.io/version: "2.7"
+  name: millionaire-backend
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: millionaire-backend
+    app.kubernetes.io/version: "2.7"
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.quarkus.io/vcs-url: https://github.com/redhat-developer-demos/millionaire-backend.git
+    app.quarkus.io/build-timestamp: 2020-10-21 - 09:00:24 +0000
+    app.quarkus.io/commit-id: 83c3df2e5dc4d46bea31e2d381cabdee3a78a5d7
+  labels:
+    app.kubernetes.io/name: millionaire-backend
+    app.kubernetes.io/version: "2.7"
+  name: millionaire-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: millionaire-backend
-      app.kubernetes.io/version: 1.0-SNAPSHOT
+      app.kubernetes.io/version: "2.7"
   template:
     metadata:
-      creationTimestamp: null
+      annotations:
+        app.quarkus.io/vcs-url: https://github.com/redhat-developer-demos/millionaire-backend.git
+        app.quarkus.io/build-timestamp: 2020-10-21 - 09:00:24 +0000
+        app.quarkus.io/commit-id: 83c3df2e5dc4d46bea31e2d381cabdee3a78a5d7
       labels:
         app.kubernetes.io/name: millionaire-backend
-        app.kubernetes.io/version: 1.0-SNAPSHOT
-      annotations:
-        app.quarkus.io/build-timestamp: '2020-08-15 - 18:21:59 +0000'
-        app.quarkus.io/commit-id: 6e0cb83417ed81b4aff7d8a9148357ab2062df87
-        app.quarkus.io/vcs-url: 'https://github.com/sebastienblanc/millionaire-backend.git'
+        app.kubernetes.io/version: "2.7"
     spec:
       containers:
-        - name: millionaire-backend
-          image: 'sebi2706/millionaire-backend:2.1'
-          ports:
-            - name: http
-              containerPort: 8080
-              protocol: TCP
-          env:
+      - env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: sebi2706/millionaire-backend:2.7
+        imagePullPolicy: IfNotPresent
+        name: millionaire-backend
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -54,7 +81,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: QUARKUS_OIDC_AUTH_SERVER_URL
               value: >-
-                https://keycloak-thegame.apps.demo.sebi-on-aws.com/auth/realms/game
+                https://keycloak-millionaire.apps.openshift.soto-onaws.com/auth/realms/game
             - name: QUARKUS_OIDC_TLS_VERIFICATION
               value: none
             - name: QUARKUS_LOG_LEVEL
@@ -65,51 +92,15 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: keycloak-db-secret
-                  key: POSTGRES_USERNAME
+                  key: database-username
             - name: QUARKUS_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: keycloak-db-secret
-                  key: POSTGRES_PASSWORD
+                  key: database-username-password
             - name: QUARKUS_DATASOURCE_JDBC_URL
               value: >-
-                jdbc:postgresql://keycloak-postgresql.thegame.svc.cluster.local/quarkus_test
+                jdbc:postgresql://postgresql:5432/gamedb
             - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION
               value: drop-and-create
-          resources: {}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-          imagePullPolicy: IfNotPresent
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      dnsPolicy: ClusterFirst
-      serviceAccountName: millionaire-backend
       serviceAccount: millionaire-backend
-      securityContext: {}
-      schedulerName: default-scheduler
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 25%
-      maxSurge: 25%
-  revisionHistoryLimit: 10
-  progressDeadlineSeconds: 600
-status:
-  observedGeneration: 55
-  replicas: 1
-  updatedReplicas: 1
-  readyReplicas: 1
-  availableReplicas: 1
-  conditions:
-    - type: Progressing
-      status: 'True'
-      lastUpdateTime: '2020-08-17T14:23:28Z'
-      lastTransitionTime: '2020-08-16T06:02:49Z'
-      reason: NewReplicaSetAvailable
-      message: ReplicaSet "millionaire-backend-65bd78d74d" has successfully progressed.
-    - type: Available
-      status: 'True'
-      lastUpdateTime: '2020-08-18T08:26:15Z'
-      lastTransitionTime: '2020-08-18T08:26:15Z'
-      reason: MinimumReplicasAvailable
-      message: Deployment has minimum availability.
